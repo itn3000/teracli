@@ -1,4 +1,5 @@
 use std::io::Read;
+use serde_json::Value;
 const OPTION_STRING: &str = "i:p:o:";
 fn create_app<'a>() -> clap::App<'a> {
     clap::App::new("teracli")
@@ -29,8 +30,26 @@ fn create_tera_context_from_parameter(json_path: &str) -> anyhow::Result<tera::C
     Ok(context)
 }
 
-fn create_tera_context_from_jsonvalue(value: &serde_json::Value) -> tera::Context {
-
+fn create_tera_context_from_jsonvalue(value: &Value) -> tera::Context {
+    let context = tera::Context::new();
+    context.extend()
+    match value {
+        Value::Object(v) => {
+            for k in v.keys() {
+                match v[k] {
+                    Value::Object(inner) => 
+                        context.insert(k, &create_tera_context_from_jsonvalue(&Value::Object(inner))),
+                    Value::String(inner) => context.insert(k, &inner),
+                    Value::Number(inner) => context.insert(k, &inner),
+                    Value::Array(inner) => context.insert(k, &inner),
+                    Value::Bool(inner) => context.insert(k, &inner),
+                    Value::Null => (),
+                };
+            }
+        },
+        _ 
+    };
+    context
 }
 
 fn main() -> anyhow::Result<()> {
