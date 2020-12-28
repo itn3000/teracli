@@ -1,0 +1,5 @@
+{% for grp in groups %}
+[grp{{ grp.groupname }}:children]
+grp{{ grp.groupname }}_mal
+grp{{ grp.groupname }}_vpn
+{% endfor %}

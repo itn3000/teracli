@@ -1,0 +1,10 @@
+{
+    "groups": [
+        {
+            "groupname": "abc"
+        },
+        {
+            "groupname": "def"
+        }
+    ]
+}
