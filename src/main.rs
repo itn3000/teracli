@@ -1,7 +1,5 @@
 use std::io::{ Write, Read };
 
-use clap::ArgMatches;
-
 fn create_app<'a>() -> clap::App<'a> {
     clap::App::new("teracli")
         .arg(
@@ -12,10 +10,17 @@ fn create_app<'a>() -> clap::App<'a> {
         )
         .arg(
             clap::Arg::new("parameter_file")
-                .long("parameter")
-                .short('p')
+                .long("json-parameter")
+                .short('j')
                 .value_name("PARAMETER_JSON")
-                .required(true)
+        )
+        .arg(
+            clap::Arg::new("key_parameter")
+                .long("key-parameter")
+                .short('k')
+                .multiple_occurrences(true)
+                .about("key-value pair devided by '=', complex type did not allowed")
+                .value_name("KEYVALUE_PAIR")
         )
         .arg(
             clap::Arg::new("output_file")
@@ -25,7 +30,7 @@ fn create_app<'a>() -> clap::App<'a> {
         )
 }
 
-fn create_tera_context_from_parameter(json_path: &str) -> anyhow::Result<tera::Context> {
+fn create_tera_context_from_parameter_json(json_path: &str) -> anyhow::Result<tera::Context> {
     let f = std::fs::File::open(json_path)?;
     let parsed: serde_json::Value = serde_json::from_reader(f)?;
     // let context = create_tera_context_from_jsonvalue(&parsed);
@@ -50,11 +55,32 @@ fn get_input_from_matches(matches: &clap::ArgMatches) -> anyhow::Result<String> 
     })
 }
 
+fn create_tera_context_from_keyvalue(kvlist: &[&str]) -> anyhow::Result<tera::Context> {
+    let mut context = tera::Context::default();
+    for kv in kvlist.iter() {
+        let pair: Vec<&str> = (*kv).splitn(2, "=").collect();
+        if pair.len() < 2 {
+            continue;
+        }
+        context.insert(pair[0], pair[1]);
+    }
+    Ok(context)
+
+}
+
 fn main() -> anyhow::Result<()> {
     let app = create_app();
     let matches = app.get_matches();
     let parameter_file = matches.value_of("parameter_file").unwrap();
-    let context = create_tera_context_from_parameter(parameter_file)?;
+    let mut context = create_tera_context_from_parameter_json(parameter_file)?;
+    match matches.values_of("key_parameter") {
+        Some(v) => {
+            let keyvalues: Vec<&str> = v.collect();
+            let kv_context = create_tera_context_from_keyvalue(&keyvalues)?;
+            context.extend(kv_context);
+        },
+        None => ()
+    };
     let mut tr = tera::Tera::default();
     let input_string = get_input_from_matches(&matches)?;
     let parsed = tr.render_str(&input_string, &context)?;

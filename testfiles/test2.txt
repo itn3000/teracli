@@ -1,3 +1,6 @@
 {% for grp in groups %}
 {{grp.groupname}}
 {% endfor %}
+
+{{ abc }}
+{{ moge }}
