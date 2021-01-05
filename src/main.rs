@@ -1,7 +1,10 @@
 use std::io::{ Write, Read };
 
+use clap::{crate_name, crate_version};
+
 fn create_app<'a>() -> clap::App<'a> {
-    clap::App::new("teracli")
+    clap::App::new(crate_name!())
+        .version(crate_version!())
         .arg(
             clap::Arg::new("input")
                 .value_name("INPUT_FILE")
