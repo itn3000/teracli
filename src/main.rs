@@ -1,5 +1,4 @@
 use std::io::{ Write, Read };
-
 use clap::{crate_name, crate_version};
 
 fn create_app<'a>() -> clap::App<'a> {
@@ -22,7 +21,7 @@ fn create_app<'a>() -> clap::App<'a> {
                 .long("key-parameter")
                 .short('k')
                 .multiple_occurrences(true)
-                .about("key-value pair devided by '=', complex type did not allowed")
+                .help("key-value pair devided by '=', complex type did not allowed")
                 .value_name("KEYVALUE_PAIR")
         )
         .arg(
